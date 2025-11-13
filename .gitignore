@@ -1,0 +1,75 @@
+# ==========================================
+# Unreal Engine .gitignore
+# ==========================================
+
+# Build folders (should not be tracked)
+Build/
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# User-specific files
+.vs/
+.idea/
+*.VC.db
+*.opensdf
+*.sdf
+*.suo
+*.user
+*.userprefs
+
+# Unreal project user settings (local only)
+Config/DefaultEditorPerProjectUserSettings.ini
+Config/DefaultEditorUserSettings.ini
+
+# Backup and autosave files
+Backup/
+Autosaves/
+
+# Compiled binaries and libraries
+*.exe
+*.dll
+*.lib
+*.app
+*.dylib
+*.so
+*.pdb
+*.obj
+*.ipch
+
+# Engine and IDE generated data
+*.xcodeproj
+*.xcworkspace
+*.xcuserdata/
+*.vscode/
+
+# Temporary or cache files
+*.log
+*.tmp
+*.cache
+*.pid
+
+# Ignore plugin build data
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+Plugins/*/Saved/
+
+# Ignore cooked content (packaged builds)
+*/Saved/Cooked/
+*/Build/WindowsNoEditor/
+*/Build/LinuxNoEditor/
+*/Build/MacNoEditor/
+
+# Ignore packaged game data
+*.pak
+*.ucas
+*.utoc
+*.umap.temp
+
+# Ignore local crash reports
+Saved/Crashes/
+
+# Ignore any other local files
+.DS_Store
+Thumbs.db
