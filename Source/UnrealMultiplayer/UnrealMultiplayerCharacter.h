@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "UnrealMultiplayerCharacter.generated.h"
+
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -92,5 +94,23 @@ public:
 
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
+	
+public:
+
+	// Pointer to the online session interface
+	IOnlineSessionPtr OnlineSessionInterface;
+	
+protected:
+	UFUNCTION(BlueprintCallable)
+	void CreateGameSession();
+	
+	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+	
+
+private:
+
+	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
+	
 };
 
