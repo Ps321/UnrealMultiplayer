@@ -15,7 +15,8 @@
 #include "UnrealMultiplayer.h"
 
 
-AUnrealMultiplayerCharacter::AUnrealMultiplayerCharacter():CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete))
+AUnrealMultiplayerCharacter::AUnrealMultiplayerCharacter():CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
+FindSessionCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete))
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -179,7 +180,24 @@ void AUnrealMultiplayerCharacter::CreateGameSession()
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
 }
-void AUnrealMultiplayerCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+
+ void AUnrealMultiplayerCharacter::JoinGameSession()
+ {
+	if (!OnlineSessionInterface.IsValid())
+	{
+		return;
+	}
+	OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionCompleteDelegate);
+
+	SessionSearch = MakeShareable(new FOnlineSessionSearch());
+	SessionSearch->bIsLanQuery=false;
+	SessionSearch->MaxSearchResults=10000;
+	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE,)
+	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
+ }
+
+ void AUnrealMultiplayerCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
 	if (bWasSuccessful)
 	{
@@ -206,3 +224,31 @@ void AUnrealMultiplayerCharacter::OnCreateSessionComplete(FName SessionName, boo
 		}
 	}
 }
+
+ void AUnrealMultiplayerCharacter::OnFindSessionsComplete(bool bWasSuccessful)
+ {
+	if (bWasSuccessful)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Blue,
+				FString::Printf(TEXT("Created session: %s"), *SessionName.ToString())
+			);
+		}
+	}
+	else
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,
+				15.f,
+				FColor::Red,
+				FString(TEXT("Failed to create session!"))
+			);
+		}
+	}
+ }
