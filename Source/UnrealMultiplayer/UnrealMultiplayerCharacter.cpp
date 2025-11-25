@@ -16,7 +16,8 @@
 
 
 AUnrealMultiplayerCharacter::AUnrealMultiplayerCharacter():CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
-FindSessionCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete))
+FindSessionCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete)),
+JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete))
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -176,7 +177,8 @@ void AUnrealMultiplayerCharacter::CreateGameSession()
 	SessionSettings->bShouldAdvertise = true;
 	SessionSettings->bUsesPresence = true;
 	SessionSettings->bUseLobbiesIfAvailable=true;
-	//SessionSettings->Set(TEXT("MatchType"), FName("FreeForAll"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	SessionSettings->Set(FName("GameType"), FString("Free"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+	
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
 }
@@ -192,7 +194,7 @@ void AUnrealMultiplayerCharacter::CreateGameSession()
 	SessionSearch = MakeShareable(new FOnlineSessionSearch());
 	SessionSearch->bIsLanQuery=false;
 	SessionSearch->MaxSearchResults=10000;
-	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE,)
+	SessionSearch->QuerySettings.Set(TEXT("PRESENCESEARCH"),true,EOnlineComparisonOp::Equals);
 	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
  }
@@ -209,6 +211,11 @@ void AUnrealMultiplayerCharacter::CreateGameSession()
 				FColor::Blue,
 				FString::Printf(TEXT("Created session: %s"), *SessionName.ToString())
 			);
+		}
+		UWorld* World = GetWorld();
+		if (World)
+		{
+			World->ServerTravel(FString("/Game/ThirdPerson/Lobby?listen"));
 		}
 	}
 	else
@@ -227,28 +234,51 @@ void AUnrealMultiplayerCharacter::CreateGameSession()
 
  void AUnrealMultiplayerCharacter::OnFindSessionsComplete(bool bWasSuccessful)
  {
-	if (bWasSuccessful)
+	if (!OnlineSessionInterface.IsValid())return;
+	for (auto Result: SessionSearch->SearchResults)
 	{
+		FString Id=Result.GetSessionIdStr();
+		FString name=Result.Session.OwningUserName;
+		FString MatchType;
+		Result.Session.SessionSettings.Get(FName("GameType"), MatchType);
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Blue,
-				FString::Printf(TEXT("Created session: %s"), *SessionName.ToString())
-			);
+			-1,
+			15.f,
+			FColor::Blue,
+			FString::Printf(TEXT("Find session: %s - %s"), *Id,*name));
+											
 		}
+		if (MatchType==FString("Free"))
+		{
+			GEngine->AddOnScreenDebugMessage(
+			-1,
+			15.f,
+			FColor::Blue,
+			FString::Printf(TEXT("Joining session: %s "), *MatchType));
+			OnlineSessionInterface->AddOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegate);
+			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+			OnlineSessionInterface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(),NAME_GameSession,Result);
+		}
+		
 	}
-	else
+	
+ }
+
+ void AUnrealMultiplayerCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+ {
+	if (!OnlineSessionInterface.IsValid())return;
+
+	FString Address;
+	if (OnlineSessionInterface->GetResolvedConnectString(NAME_GameSession,Address))
 	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Red,
-				FString(TEXT("Failed to create session!"))
-			);
-		}
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			15.f,
+			FColor::Blue,
+			FString::Printf(TEXT("Join session complete: %s"), *Address));
+		APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
+		PlayerController->ClientTravel(Address,TRAVEL_Absolute);
 	}
  }
