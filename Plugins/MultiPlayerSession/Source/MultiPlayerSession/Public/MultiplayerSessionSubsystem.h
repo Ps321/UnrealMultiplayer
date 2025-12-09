@@ -3,13 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "OnlineSessionSettings.h"
 #include "Interfaces/OnlineSessionInterface.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "MultiplayerSessionSubsystem.generated.h"
 
 /**
- * 
+ *
+ * Declaring our Own Delegates
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnCreateSessionComplete,bool,bWasSuccessfull);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FMultiplayerOnFindSessionsComplete,TArray<FOnlineSessionSearchResult> searchResult,bool bWasSuccessfull);
+DECLARE_MULTICAST_DELEGATE_OneParam(FMultiplayerOnJoinSessionComplete,EOnJoinSessionCompleteResult::Type Result);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnDestroySessionComplete,bool,bWasSuccessfull);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerOnStartSessionComplete,bool,bWasSuccessfull);
+
+
 UCLASS()
 class MULTIPLAYERSESSION_API UMultiplayerSessionSubsystem : public UGameInstanceSubsystem
 {
@@ -21,6 +31,12 @@ public:
 	void JoinGameSession(const FOnlineSessionSearchResult& Result);
 	void DestroySession();
 	void StartSession();
+
+	FMultiplayerOnCreateSessionComplete MultiplayerOnCreateSessionCompleteDelegate;
+	FMultiplayerOnFindSessionsComplete MultiplayerOnFindSessionsCompleteDelegate;
+	FMultiplayerOnJoinSessionComplete MultiplayerOnJoinSessionCompleteDelegate;
+	FMultiplayerOnDestroySessionComplete MultiplayerOnDestroySessionCompleteDelegate;
+	FMultiplayerOnStartSessionComplete MultiplayerOnStartSessionCompleteDelegate;
 protected:
 
 	//CallbackFunction
@@ -29,10 +45,14 @@ protected:
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
 	void OnStartSessionComplete(FName SessionName, bool bWasSuccessful);
+
+
+	
 	
 private:
 	IOnlineSessionPtr OnlineSessionInterface;
-
+	TSharedPtr<FOnlineSessionSettings> SessionSettings;
+	TSharedPtr<FOnlineSessionSearch> SessionSearch;
 	//Delegates and Handles
 
 	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
