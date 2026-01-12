@@ -7,6 +7,8 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Weapon/Weapon.h"
 
 // Sets default values
 ABlasterCharacter::ABlasterCharacter()
@@ -25,7 +27,10 @@ ABlasterCharacter::ABlasterCharacter()
 	bUseControllerRotationYaw=false;
 	GetCharacterMovement()->bOrientRotationToMovement=true;
 	OverHeadWidget=CreateDefaultSubobject<UWidgetComponent>("OverHeadWidget");
-	OverHeadWidget->SetupAttachment(GetMesh());
+	OverHeadWidget->SetupAttachment(GetMesh() );
+
+	Combat=CreateDefaultSubobject<UCombatComponent>("Combat Component");
+	Combat->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +38,11 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+void ABlasterCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
 }
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -43,6 +53,23 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Right",this,&ABlasterCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn",this,&ABlasterCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp",this,&ABlasterCharacter::LookUp);
+
+	PlayerInputComponent->BindAction("Equip",IE_Pressed,this,&ABlasterCharacter::EquipItem);
+}
+
+void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(ABlasterCharacter,OverlappingWeapon,COND_OwnerOnly);
+}
+
+void ABlasterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (Combat)
+	{
+		Combat->Character=this;
+	}
 }
 
 void ABlasterCharacter::MoveForward(float Value)
@@ -75,13 +102,55 @@ void ABlasterCharacter::Turn(float Value)
 	AddControllerYawInput(Value); 
 }
 
-// Called every frame
-void ABlasterCharacter::Tick(float DeltaTime)
+void ABlasterCharacter::EquipItem()
 {
-	Super::Tick(DeltaTime);
-
+	if (Combat )
+	{
+		if (HasAuthority())
+		{
+			Combat->EquipWeapon(OverlappingWeapon);
+		}else
+		{
+			ServerEquipButtonPressed();
+		}
+	}
+}
+void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
+{
+	if (Combat)
+	{
+		Combat->EquipWeapon(OverlappingWeapon);
+	}
+}
+void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
+{
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickupWidget(true);
+	}
+	if (LastWeapon)
+	{
+		LastWeapon->ShowPickupWidget(false);
+	}
 }
 
-// Called to bind functionality to input
+
+
+void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
+{
+	if (OverlappingWeapon)
+	{
+		OverlappingWeapon->ShowPickupWidget(false);
+	}
+	OverlappingWeapon=Weapon;
+	if (IsLocallyControlled())
+	{
+		if (OverlappingWeapon)
+		{
+			OverlappingWeapon->ShowPickupWidget(true);
+		}
+	}
+}
+
 
 

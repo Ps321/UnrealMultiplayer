@@ -27,5 +27,8 @@ private:
 	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
 	bool bIsAccelerating;
 
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	bool bIsWeaponEquipped;
+
 	
 };

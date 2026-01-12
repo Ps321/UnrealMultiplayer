@@ -6,6 +6,7 @@
 #include "Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -41,23 +42,69 @@ void AWeapon::BeginPlay()
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this,&AWeapon::OnSphereOverlap);
+		AreaSphere->OnComponentEndOverlap.AddDynamic(this,&AWeapon::OnSphereEndOverlap);
 	}
 }
+// Called every frame
+void AWeapon::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AWeapon,CurrentWeaponState);
+}
+
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ABlasterCharacter* BlasterCharacter=Cast<ABlasterCharacter>(OtherActor);
 
-	if (BlasterCharacter && PickupWidget)
+	if (BlasterCharacter)
 	{
-		PickupWidget->SetVisibility(true);
+		BlasterCharacter->SetOverlappingWeapon(this);
 	}
 }
 
-// Called every frame
-void AWeapon::Tick(float DeltaTime)
+void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	Super::Tick(DeltaTime);
+	ABlasterCharacter* BlasterCharacter=Cast<ABlasterCharacter>(OtherActor);
 
+	if (BlasterCharacter)
+	{
+		BlasterCharacter->SetOverlappingWeapon(nullptr);
+	}
+}
+
+void AWeapon::OnRep_WeaponState()
+{
+	switch (CurrentWeaponState)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+	}
+}
+
+void AWeapon::SetWeaponState(EWeaponState State)
+{
+	CurrentWeaponState=State;
+	switch (State)
+	{
+	case EWeaponState::EWS_Equipped:
+		ShowPickupWidget(false);
+		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+}
+
+
+void AWeapon::ShowPickupWidget(bool bShow)
+{
+	if (PickupWidget)
+	{
+		PickupWidget->SetVisibility(bShow);
+	}
 }
 
