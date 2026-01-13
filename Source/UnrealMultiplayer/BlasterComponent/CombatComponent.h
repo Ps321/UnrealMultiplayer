@@ -28,6 +28,13 @@ private:
 	ABlasterCharacter* Character;
 	UPROPERTY(Replicated)
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
+	bool bIsAiming;
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

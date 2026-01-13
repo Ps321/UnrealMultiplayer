@@ -26,6 +26,10 @@ protected:
 	void LookUp(float Value);
 	void Turn(float Value);
 	void EquipItem();
+	void CrouchPlayer();
+	void UnCrouchPlayer();
+	void Aim();
+	void Unaim();
 
 private:	
 	UPROPERTY(VisibleAnywhere,Category =Camera)
@@ -46,8 +50,13 @@ private:
 	class UCombatComponent* Combat;
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	UFUNCTION(Server, Reliable)
+	void ServerAiming(bool isAiming);
 	
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	FORCEINLINE bool IsWeaponEquipped(){return (Combat && Combat->EquippedWeapon);}
+	FORCEINLINE bool IsAiming() const { return Combat->bIsAiming; }
+	FORCEINLINE void SetAiming(bool value) { Combat->bIsAiming=value; }
 };

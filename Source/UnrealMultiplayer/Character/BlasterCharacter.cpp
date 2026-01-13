@@ -55,6 +55,11 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("LookUp",this,&ABlasterCharacter::LookUp);
 
 	PlayerInputComponent->BindAction("Equip",IE_Pressed,this,&ABlasterCharacter::EquipItem);
+	PlayerInputComponent->BindAction("Crouch",IE_Pressed,this,&ABlasterCharacter::CrouchPlayer);
+	PlayerInputComponent->BindAction("Crouch",IE_Released,this,&ABlasterCharacter::UnCrouchPlayer);
+	PlayerInputComponent->BindAction("Aim",IE_Pressed,this,&ABlasterCharacter::Aim);
+	PlayerInputComponent->BindAction("Aim",IE_Released,this,&ABlasterCharacter::Unaim);
+	
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -115,6 +120,39 @@ void ABlasterCharacter::EquipItem()
 		}
 	}
 }
+
+void ABlasterCharacter::CrouchPlayer()
+{
+	Crouch();
+}
+
+void ABlasterCharacter::UnCrouchPlayer()
+{
+	UnCrouch();
+}
+
+void ABlasterCharacter::Aim()
+{
+	if (HasAuthority())
+	{
+		SetAiming(true);
+	}else
+	{
+		ServerAiming(true);
+	}
+}
+
+void ABlasterCharacter::Unaim()
+{
+	if (HasAuthority())
+	{
+		SetAiming(false);
+	}else
+	{
+		ServerAiming(false);
+	}
+}
+
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if (Combat)
@@ -135,6 +173,10 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 }
 
 
+void ABlasterCharacter::ServerAiming_Implementation(bool isAiming)
+{
+	SetAiming(isAiming);
+}
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {

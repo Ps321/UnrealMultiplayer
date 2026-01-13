@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 DEFINE_LOG_CATEGORY_STATIC(LogBlaster, Log, All);
 
@@ -27,6 +28,14 @@ void UCombatComponent::BeginPlay()
 }
 
 
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if (EquippedWeapon && Character)
+	{
+		Character->GetCharacterMovement()->bOrientRotationToMovement=false;
+		Character->bUseControllerRotationYaw=true;
+	}
+}
 
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -47,12 +56,14 @@ void UCombatComponent::EquipWeapon(AWeapon* WeapontoEquip)
 	UE_LOG(LogBlaster, Warning, TEXT("aaya %s"), *GetNameSafe(Character));
 
 	EquippedWeapon->SetOwner(Character);
-	// EquippedWeapon->ShowPickupWidget(false);
+	Character->GetCharacterMovement()->bOrientRotationToMovement=false;
+	Character->bUseControllerRotationYaw=true;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 

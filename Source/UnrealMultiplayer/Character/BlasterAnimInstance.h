@@ -29,6 +29,18 @@ private:
 
 	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
 	bool bIsWeaponEquipped;
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	bool bIsCrouch;
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	bool bIsAiming;
 
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	float YawOffset;
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	float Lean;
+
+	FRotator DeltaRotator;
+	FRotator CharacterRotationLastFrame;
+	FRotator CharacterRotation;
 	
 };
