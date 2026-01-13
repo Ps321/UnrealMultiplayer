@@ -58,5 +58,5 @@ public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	FORCEINLINE bool IsWeaponEquipped(){return (Combat && Combat->EquippedWeapon);}
 	FORCEINLINE bool IsAiming() const { return Combat->bIsAiming; }
-	FORCEINLINE void SetAiming(bool value) { Combat->bIsAiming=value; }
+	void SetAiming(bool value);
 };

@@ -15,7 +15,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogBlaster, Log, All);
 UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-
+	MaxWalkingSpeed=600.f;
+	MaxAimWalkingSpeed=450.0f;
 }
 
 
@@ -24,7 +25,7 @@ void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	
+	if (Character)Character->GetCharacterMovement()->MaxWalkSpeed=MaxWalkingSpeed;
 }
 
 

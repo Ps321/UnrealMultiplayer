@@ -152,6 +152,11 @@ void ABlasterCharacter::Unaim()
 		ServerAiming(false);
 	}
 }
+void ABlasterCharacter::SetAiming(bool value)
+{
+	Combat->bIsAiming=value;
+	GetCharacterMovement()->MaxWalkSpeed=value?Combat->MaxAimWalkingSpeed:Combat->MaxWalkingSpeed;
+}
 
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
@@ -176,6 +181,7 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 void ABlasterCharacter::ServerAiming_Implementation(bool isAiming)
 {
 	SetAiming(isAiming);
+	GetCharacterMovement()->MaxWalkSpeed=isAiming?Combat->MaxAimWalkingSpeed:Combat->MaxWalkingSpeed;
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

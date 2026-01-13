@@ -26,10 +26,10 @@ protected:
 	
 private:
 	ABlasterCharacter* Character;
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
 
-	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
+	UPROPERTY(Replicated)
 	bool bIsAiming;
 
 	UFUNCTION()
@@ -38,5 +38,9 @@ private:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxWalkingSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxAimWalkingSpeed;
 	
 };
