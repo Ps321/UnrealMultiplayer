@@ -42,5 +42,13 @@ private:
 	FRotator DeltaRotator;
 	FRotator CharacterRotationLastFrame;
 	FRotator CharacterRotation;
+	AWeapon* EquippedWeapon;
+
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	float AO_Yaw;
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	float AO_Pitch;
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	FTransform LeftHandTransform;
 	
 };

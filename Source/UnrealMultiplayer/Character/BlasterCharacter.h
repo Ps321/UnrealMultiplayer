@@ -30,6 +30,7 @@ protected:
 	void UnCrouchPlayer();
 	void Aim();
 	void Unaim();
+	void AimOffset(float DeltaSeconds);
 
 private:	
 	UPROPERTY(VisibleAnywhere,Category =Camera)
@@ -53,10 +54,17 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerAiming(bool isAiming);
-	
+
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator CurrentRotation;
+	FRotator StartingRotation;
 public:
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	FORCEINLINE bool IsWeaponEquipped(){return (Combat && Combat->EquippedWeapon);}
 	FORCEINLINE bool IsAiming() const { return Combat->bIsAiming; }
 	void SetAiming(bool value);
+	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+	FORCEINLINE AWeapon* GetEquippedWeapon() const {return (Combat && Combat->EquippedWeapon)?Combat->EquippedWeapon:nullptr;}
 };

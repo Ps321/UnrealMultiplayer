@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 
@@ -42,7 +43,7 @@ void ABlasterCharacter::BeginPlay()
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	AimOffset(DeltaTime);
 }
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -152,6 +153,39 @@ void ABlasterCharacter::Unaim()
 		ServerAiming(false);
 	}
 }
+
+void ABlasterCharacter::AimOffset(float DeltaSeconds)
+{
+	FVector Velocity=GetVelocity();
+	Velocity.Z=0;
+	float Speed=Velocity.Size();
+
+	bool bIsInAir=GetCharacterMovement()->IsFalling();
+
+	if (Speed==0 && !bIsInAir)
+	{
+		CurrentRotation=FRotator(0,GetBaseAimRotation().Yaw,0);
+		FRotator DeltaRot=UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation,StartingRotation);
+		AO_Yaw=DeltaRot.Yaw;
+		bUseControllerRotationYaw=false;
+	}
+
+	if (Speed>0 || bIsInAir)
+	{
+		StartingRotation=FRotator(0,GetBaseAimRotation().Yaw,0);
+		AO_Yaw=0;
+		bUseControllerRotationYaw=true;
+	}
+	AO_Pitch=GetBaseAimRotation().Pitch;
+
+	if (AO_Pitch>90.0f && !IsLocallyControlled())
+	{
+		FVector2D Incoming(270,360);
+		FVector2D Outgoing(-90,0);
+		AO_Pitch=FMath::GetMappedRangeValueClamped(Incoming,Outgoing,AO_Pitch);		
+	}
+}
+
 void ABlasterCharacter::SetAiming(bool value)
 {
 	Combat->bIsAiming=value;
