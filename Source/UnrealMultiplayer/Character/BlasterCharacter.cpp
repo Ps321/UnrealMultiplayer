@@ -32,6 +32,7 @@ ABlasterCharacter::ABlasterCharacter()
 
 	Combat=CreateDefaultSubobject<UCombatComponent>("Combat Component");
 	Combat->SetIsReplicated(true);
+	TurnInPlaceValue=ETurnInPlace::ETIP_None;
 }
 
 // Called when the game starts or when spawned
@@ -167,13 +168,20 @@ void ABlasterCharacter::AimOffset(float DeltaSeconds)
 		CurrentRotation=FRotator(0,GetBaseAimRotation().Yaw,0);
 		FRotator DeltaRot=UKismetMathLibrary::NormalizedDeltaRotator(CurrentRotation,StartingRotation);
 		AO_Yaw=DeltaRot.Yaw;
-		bUseControllerRotationYaw=false;
+		
+		if (TurnInPlaceValue == ETurnInPlace::ETIP_None)
+		{
+			InterpAO_Yaw = AO_Yaw;
+		}
+		bUseControllerRotationYaw=true;
+		SetTurnInPlace(DeltaSeconds);
 	}
 
 	if (Speed>0 || bIsInAir)
 	{
 		StartingRotation=FRotator(0,GetBaseAimRotation().Yaw,0);
 		AO_Yaw=0;
+		TurnInPlaceValue=ETurnInPlace::ETIP_None;
 		bUseControllerRotationYaw=true;
 	}
 	AO_Pitch=GetBaseAimRotation().Pitch;
@@ -208,6 +216,26 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	if (LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
+	}
+}
+
+void ABlasterCharacter::SetTurnInPlace(float DeltaSeconds)
+{
+	if (AO_Yaw>90.0f)
+	{
+		TurnInPlaceValue=ETurnInPlace::ETIP_Right;
+	}else if (AO_Yaw<-90.0f)
+	{
+		TurnInPlaceValue=ETurnInPlace::ETIP_Left;
+	}
+	if (TurnInPlaceValue!=ETurnInPlace::ETIP_None)
+	{
+		InterpAO_Yaw=FMath::FInterpTo(InterpAO_Yaw,0.f,DeltaSeconds,6.f);
+		AO_Yaw=InterpAO_Yaw;
+		if (FMath::Abs(AO_Yaw)<15.0f)
+		{
+			StartingRotation=FRotator(0,GetBaseAimRotation().Yaw,0);
+		}
 	}
 }
 

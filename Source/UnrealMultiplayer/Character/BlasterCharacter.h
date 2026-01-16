@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TurnInPlace.h"
 #include "BlasterComponent/CombatComponent.h"
 #include "GameFramework/Character.h"
 #include "BlasterCharacter.generated.h"
@@ -52,10 +53,13 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
+	ETurnInPlace TurnInPlaceValue;
+	void SetTurnInPlace(float DeltaSeconds);
 	UFUNCTION(Server, Reliable)
 	void ServerAiming(bool isAiming);
 
 	float AO_Yaw;
+	float InterpAO_Yaw;
 	float AO_Pitch;
 	FRotator CurrentRotation;
 	FRotator StartingRotation;
@@ -67,4 +71,6 @@ public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 	FORCEINLINE AWeapon* GetEquippedWeapon() const {return (Combat && Combat->EquippedWeapon)?Combat->EquippedWeapon:nullptr;}
+	FORCEINLINE ETurnInPlace GetTurnInPlaceValue() const { return TurnInPlaceValue; }
+	
 };

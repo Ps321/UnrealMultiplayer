@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "BlasterCharacter.h"
+#include "TurnInPlace.h"
 #include "Animation/AnimInstance.h"
 #include "BlasterAnimInstance.generated.h"
+
 
 /**
  * 
@@ -50,5 +52,6 @@ private:
 	float AO_Pitch;
 	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
 	FTransform LeftHandTransform;
-	
+	UPROPERTY(BluePrintReadOnly, Category = Character,meta=(AllowPrivateAccess="true"))
+	ETurnInPlace turnInPlace;
 };
