@@ -34,6 +34,18 @@ private:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	UFUNCTION()
+	void FireWeapon(bool bIsFiring);
+
+	bool bIsFiringWeapon;
+
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastFireWeapon(const FVector_NetQuantize& TraceHitTarget);
+	UFUNCTION(Server, Reliable)
+	void ServerFireWeapon(const FVector_NetQuantize& TraceHitTarget);
+
+	void TraceUnderCrosshairs(FHitResult& HitResult);
+
 
 public:	
 	// Called every frame

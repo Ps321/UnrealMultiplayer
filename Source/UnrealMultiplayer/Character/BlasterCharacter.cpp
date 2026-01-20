@@ -61,6 +61,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Crouch",IE_Released,this,&ABlasterCharacter::UnCrouchPlayer);
 	PlayerInputComponent->BindAction("Aim",IE_Pressed,this,&ABlasterCharacter::Aim);
 	PlayerInputComponent->BindAction("Aim",IE_Released,this,&ABlasterCharacter::Unaim);
+	PlayerInputComponent->BindAction("Fire",IE_Pressed,this,&ABlasterCharacter::FireWeaponPressed);
+	PlayerInputComponent->BindAction("Fire",IE_Released,this,&ABlasterCharacter::FireWeaponUnPressed);
 	
 }
 
@@ -73,9 +75,24 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void ABlasterCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+	
+	Combat->PrimaryComponentTick.bCanEverTick = true;
 	if (Combat)
 	{
 		Combat->Character=this;
+	}
+}
+
+void ABlasterCharacter::PlayFireMontage(bool bIsAiming)
+{
+	if (Combat==nullptr || Combat->EquippedWeapon==nullptr)return;
+	
+	UAnimInstance* AnimInstance=GetMesh()->GetAnimInstance();
+	if (AnimInstance && FireMontage)
+	{
+		AnimInstance->Montage_Play(FireMontage);
+		FName MontageSection=bIsAiming?"RifleAim":"RifleHip";
+		AnimInstance->Montage_JumpToSection(MontageSection,FireMontage);
 	}
 }
 
@@ -173,7 +190,7 @@ void ABlasterCharacter::AimOffset(float DeltaSeconds)
 		{
 			InterpAO_Yaw = AO_Yaw;
 		}
-		bUseControllerRotationYaw=true;
+		bUseControllerRotationYaw=false;
 		SetTurnInPlace(DeltaSeconds);
 	}
 
@@ -192,6 +209,22 @@ void ABlasterCharacter::AimOffset(float DeltaSeconds)
 		FVector2D Outgoing(-90,0);
 		AO_Pitch=FMath::GetMappedRangeValueClamped(Incoming,Outgoing,AO_Pitch);		
 	}
+}
+
+void ABlasterCharacter::FireWeaponPressed()
+{
+	if (Combat && Combat->EquippedWeapon)
+	{
+		Combat->FireWeapon(true);
+	}
+}
+
+void ABlasterCharacter::FireWeaponUnPressed()
+{
+	if (Combat && Combat->EquippedWeapon)
+	{
+		Combat->FireWeapon(false);
+	}	
 }
 
 void ABlasterCharacter::SetAiming(bool value)

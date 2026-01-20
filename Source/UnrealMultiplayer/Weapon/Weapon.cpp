@@ -3,9 +3,12 @@
 
 #include "Weapon/Weapon.h"
 
+#include "BulletShells.h"
 #include "Character/BlasterCharacter.h"
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/SkeletalMeshSocket.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -107,4 +110,31 @@ void AWeapon::ShowPickupWidget(bool bShow)
 		PickupWidget->SetVisibility(bShow);
 	}
 }
+
+void AWeapon::FireWeapon(const FVector& HitTarget)
+{
+	if (FireAnimation)
+	{
+		WeaponMesh->PlayAnimation(FireAnimation,false);
+	}
+
+	if (BulletShell)
+	{
+		const USkeletalMeshSocket* ShellSocket=GetEquippedMeshComponent()->GetSocketByName("AmmoEject");
+	
+		
+			FTransform ShellSocketTransform=ShellSocket->GetSocketTransform(GetEquippedMeshComponent());
+
+			const FRotator RandRotator = UKismetMathLibrary::RandomRotator();
+
+			const FRotator LerpedRot = UKismetMathLibrary::RLerp(ShellSocketTransform.GetRotation().Rotator(), RandRotator, .35f, true);
+			UWorld* staticWorld=GetWorld();
+			if (staticWorld)
+			{
+				staticWorld->SpawnActor<ABulletShells>(BulletShell,ShellSocketTransform.GetLocation(),LerpedRot);
+			}
+	}
+	
+}
+
 
